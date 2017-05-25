@@ -1,0 +1,160 @@
+{% import "bootstrap/utils.html" as utils %}
+{% extends "base.html" %}
+{% block title %}Forecast{% endblock %}
+{% block body %}
+<div class="content-section">
+  <div class="outer">
+    <div class="middle">
+      <div class="inner">
+        <div class="pull-left">
+          <a id="btnExport" href="#" class="btn btn-default btn-lg">
+            <i class="fa fa-print"></i>
+          </a>
+           <a href="{{ url_for('admin.add_forecast') }}" class="btn btn-default btn-lg">
+            <i class="fa fa-plus"></i>
+          </a>
+        </div>
+         <br/>
+        {{ utils.flashed_messages() }}
+        <br/>
+        <h1 style="text-align:center;">Forecasts {{mYear}}</h1>
+        
+        {% if forecasts %}
+          <br>
+          <br>
+          <div>
+            <table id="forecastList" class="display" cellspacing="0" width="100%">
+              <thead>
+                  <tr>
+                      <th>Month</th>
+                      <th>HC</th>
+                      <th>Month Hours</th>
+                      <th>Available</th>
+                      <th>Holiday</th>
+                      <th>Holiday Hours</th>
+                      <th>%Holiday</th>
+                      <th>%Comp</th>
+                      <th>%Illness</th>
+                      <th>%Educ</th>
+                      <th>%Others</th>
+                      <th>Comp Hours</th>
+                      <th>Illness Hours</th>
+                      <th>Others Hours</th>
+                      <th>Education Hours</th>
+                      <th>%Vacation</th>
+                      <th>Vacation Hours</th>
+                      <th>Normal Hours</th>
+                      <th>% Overtime</th>
+                      <th>Overtime Hours</th>
+                      <th>Chargeable</th>
+                      <th>Utilization</th>
+                      <th>Delete</th>
+                  </tr>
+              </thead>
+              <tfoot>
+                  <tr>
+                      <th>Month</th>
+                      <th>HC</th>
+                      <th>Month Hours</th>
+                      <th>Available</th>
+                      <th>Holiday</th>
+                      <th>Holiday Hours</th>
+                      <th>%Holiday</th>
+                      <th>%Comp</th>
+                      <th>%Illness</th>
+                      <th>%Educ</th>
+                      <th>%Others</th>
+                      <th>Comp Hours</th>
+                      <th>Illness Hours</th>
+                      <th>Others Hours</th>
+                      <th>Education Hours</th>
+                      <th>%Vacation</th>
+                      <th>Vacation Hours</th>
+                      <th>Normal Hours</th>
+                      <th>% Overtime</th>
+                      <th>Overtime Hours</th>
+                      <th>Chargeable</th>
+                      <th>Utilization</th>
+                      <th>Delete</th>
+                  </tr>
+              </tfoot>
+              <tbody>
+              {% set year = mYear | int %}
+              {% for forecast in forecasts %}
+                {% if year == forecast.year %}
+                  <tr>
+                        <td><a href="{{ url_for('admin.edit_forecast', id=forecast.id) }}">{{ forecast.month }}</a> </td>
+                        <td>{{ forecast.hc }}</td>
+                        <td>{{ forecast.month_hours }}</td>
+                        <td>{{ forecast.available }}</td>
+                        <td>{{ forecast.holiday }}</td>
+                        <td>{{ forecast.holiday_hours }}</td>
+                        <td>{{ forecast.holiday_percentage }}%</td>
+                        <td>{{ forecast.comp_percentage }}%</td>
+                        <td>{{ forecast.illness_percentage }}%</td>
+                        <td>{{ forecast.education_percentage }}%</td>
+                        <td>{{ forecast.others_percentage }}%</td>
+                        <td>{{ forecast.compensation_hours }}</td>
+                        <td>{{ forecast.illness_hours }}</td>
+                        <td>{{ forecast.others_hours }}</td>
+                        <td>{{ forecast.education_hours }}</td>
+                        <td>{{ forecast.vacation_percentage }}%</td>
+                        <td>{{ forecast.vacation_hours }}</td>
+                        <td>{{ forecast.normal_hours}}</td>
+                        <td>{{ forecast.overtime_percentage }}%</td>
+                        <td>{{ forecast.overtime_hours }}</td>
+                        <td>{{ forecast.chargeable }}</td>
+                        <td>{{ forecast.utilization }}</td>
+                        <td>
+                          <a href="{{ url_for('admin.delete_forecast', id=forecast.id) }}">
+                            <i class="fa fa-trash"></i>
+                          </a>
+                        </td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div style="text-align: center">
+        {% else %}
+          <div style="text-align: center">
+            <h3> No forecast have been added. </h3>
+            <hr class="intro-divider">
+        {% endif %}
+         
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+<script src="{{url_for('static', filename='js/dataTables.bootstrap.min.js') }}"></script>
+<script src="{{url_for('static', filename='js/xlsx.core.js') }}"></script>
+<script src="{{url_for('static', filename='js/FileSaver.js') }}"></script>
+<script src="{{url_for('static', filename='js/dataTables.fixedHeader.min.js') }}"></script>
+<script src="{{url_for('static', filename='js/tableexport.js') }}"></script>
+<script src="{{url_for('static', filename='js/dataTables.responsive.min.js') }}"></script>
+<script src="{{url_for('static', filename='js/responsive.bootstrap.min.js') }}"></script>
+<script>
+        var table = $('#forecastList').DataTable( {
+            responsive: true,
+            "bSort": false
+        } );
+     
+        new $.fn.dataTable.FixedHeader( table );
+
+        $( "#btnExport" ).click(function() {
+          $("#forecastList").tableExport({
+              formats: ["xls"],     // (String[]), filetype(s) for the export
+              fileName: "Forecast",                     // (id, String), filename for the downloaded file
+              ignoreRows: [0], 
+              ignoreColumn: [22],                  // (Number, Number[]), row indices to exclude from the exported                   // (Number, Number[]), column indices to exclude from the exported file
+              ignoreCSS: ".tableexport-ignore",   // (selector, selector[]), selector(s) to exclude cells from the exported file
+              emptyCSS: ".tableexport-empty",     // (selector, selector[]), selector(s) to replace cells with an empty string in the exported file
+              trimWhitespace: false               // (Boolean), remove all leading/trailing newlines, spaces (including non-breaking spaces), and tabs from cell text
+          });
+        });
+</script>
+{% endblock %}
+

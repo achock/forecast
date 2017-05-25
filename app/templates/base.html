@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ title }} | Admin</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css" rel="stylesheet">
+
+    <link href="https://cdn.datatables.net/fixedheader/3.1.2/css/fixedHeader.bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.1.1/css/responsive.bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <script src="{{url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+    <script src="{{url_for('static', filename='js/bootstrap.min.js') }}"></script>
+</head>
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top topnav" role="navigation">
+        <div class="container topnav">
+          <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                  <span class="sr-only">Toggle navigation</span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand topnav" href="{{ url_for('home.homepage') }}">MSS Admin Portal</a>
+          </div>
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+              <ul class="nav navbar-nav navbar-right">
+                  {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                      <li><a href="{{ url_for('home.admin_dashboard') }}">Dashboard</a></li>
+                      <li><a href="{{ url_for('admin.list_forecasts') }}">Forecasts</a></li>
+                      <li><a href="{{ url_for('admin.list_employees') }}">Employees</a></li>
+
+                    {% else %}
+                      <li><a href="{{ url_for('home.dashboard') }}">Dashboard</a></li>
+
+                    {% endif %}
+                    <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                    <li><a><i class="fa fa-user"></i>  Hi, {{ current_user.username }}!</a></li>
+                  {% else %}
+                    <li><a href="{{ url_for('home.homepage') }}">Home</a></li>
+                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Register</a></li>
+                  {% endif %}
+              </ul>
+          </div>
+        </div>
+    </nav>
+    <div class="wrapper">
+      {% block body %}
+      {% endblock %}
+      <div class="push"></div>
+    </div>
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Utilization above estimate</p>
+      </div>
+
+    </div>
+    <script>
+    $( document ).ready(function() {
+
+        // Get the modal
+        var modal = document.getElementById('myModal');
+
+        // Get the button that opens the modal
+        var btn = document.getElementById("myBtn");
+
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        if (typeof(Storage) !== "undefined") {
+            // Code for localStorage/sessionStorage.
+        } else {
+          console.log("Sorry! No Web Storage support..");
+        }
+        try{
+          var data = localStorage.getItem('overutilization');
+          //alert(data);
+          if( data === 1){
+            $('#myModal').show();
+            //alert(data);
+          }
+        }catch(e){
+            alert("we are in catch "+e.print);
+        }
+
+
+        $('#utilization').val("");
+        $( ".form" ).submit(function( event ) {
+          var result = getAvailable();
+          $('#available').val(result);
+          var education_hours = $('#education_hours').val();
+          var education_percentage = getPercentage(education_hours);
+          $('#education_percentage').val(education_percentage);
+          var agent_vacation_ten = $('#agent_vacation_ten').val();
+          var agent_vacation_eight = $('#agent_vacation_eight').val();
+          var result_vacation = getHolidayVac(agent_vacation_ten,agent_vacation_eight);
+          $('#vacation_hours').val(result_vacation);
+          var vacation_hours = $('#vacation_hours').val();
+          var vacation_percentage = getPercentage(vacation_hours);
+          $('#vacation_percentage').val(vacation_percentage);
+          var overtime_hours = $('#overtime_hours').val();
+          var overtime_percentage = getPercentage(overtime_hours);
+          $('#overtime_percentage').val(overtime_percentage);
+          var education_hours = $('#education_hours').val();
+          var education_percentage = getPercentage(education_hours);
+          $('#education_percentage').val(education_percentage);
+          var others_hours = $('#others_hours').val();
+          var others_percentage = getPercentage(others_hours);
+          $('#others_percentage').val(others_percentage);
+          var illness_hours = $('#illness_hours').val();
+          var illness_percentage = getPercentage(illness_hours);
+          $('#illness_percentage').val(illness_percentage);
+          var compensation_hours = $('#compensation_hours').val();
+          var comp_percentage = getPercentage(compensation_hours);
+          $('#comp_percentage').val(comp_percentage);
+          var agent_holiday_ten = $('#agent_holiday_ten').val();
+          var agent_holiday_eight = $('#agent_holiday_eight').val();
+          var result_holiday= getHolidayVac(agent_holiday_ten,agent_holiday_eight);
+          $('#holiday_hours').val(result_holiday);
+          var holiday_hours = $('#holiday_hours').val();
+          var holiday_percentage = getPercentage(holiday_hours);
+          $('#holiday_percentage').val(holiday_percentage);
+          var result_holiday = getHolidayVac(agent_holiday_ten,agent_holiday_eight);
+          var normal_hours = getNormalHours(getAvailable(),result_holiday,result_vacation,compensation_hours,illness_hours,others_hours,education_hours);
+          $('#normal_hours').val(normal_hours);
+          var chargeable = getChargeable(normal_hours,overtime_hours);
+          $('#chargeable').val(chargeable);
+          var utilization = getUtilization(chargeable);
+          $('#utilization').val(utilization);
+
+          var utilization_month = $('#utilization').val();
+          if ( utilization > utilization_month ){
+              localStorage.setItem("overutilization", "1");
+          }
+        });
+
+    });
+    function getAvailable(){
+      var month_hours = $('#month_hours').val();
+      var hc = $('#hc').val();
+      return parseInt(month_hours) * parseInt(hc);
+    }
+    function getPercentage(item){
+      var percent = (item/getAvailable())*100;
+      return percent.toFixed(2);
+    }
+    function getHolidayVac(agent_ten,agent_eight){
+      return (parseInt(agent_ten)*10) + (parseInt(agent_eight)*8);
+    }
+    function getNormalHours(available,holiday_hours,vacation_hours,compensation_hours, illness_hours,others_hours,education_hours){
+      return available - (parseFloat(holiday_hours) + parseFloat(compensation_hours) + parseFloat(illness_hours) + parseFloat(others_hours) + parseFloat(education_hours) + parseFloat(vacation_hours));
+    }
+    function getChargeable(normal_hours,overtime_hours){
+      return parseFloat(normal_hours) +  parseFloat(overtime_hours);
+    }
+    function getUtilization(chargeable){
+      return getPercentage(chargeable);
+    }
+    </script>
+</body>
+</html>
